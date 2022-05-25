@@ -21,6 +21,7 @@ SUBDIR=	alias \
 	chat \
 	chpass \
 	cksum \
+	clocks \
 	cmp \
 	coexec \
 	col \
