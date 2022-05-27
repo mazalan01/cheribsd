@@ -24,6 +24,7 @@ SUBDIR=	alias \
 	cmp \
 	coexec \
 	col \
+	colookup \
 	colrm \
 	column \
 	comm \
