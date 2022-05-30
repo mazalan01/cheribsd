@@ -32,6 +32,7 @@ SUBDIR=	alias \
 	compress \
 	coping \
 	copong \
+	cotrace \
 	cpuset \
 	csplit \
 	ctlstat \
