@@ -1390,11 +1390,12 @@ retry:
 			    (copied_props + count_props) * sizeof(uint32_t));
 			prop_values_ptr = (uint64_t __user * __capability)__USER_CAP(arg64->prop_values_ptr,
 			    (copied_props + count_props) * sizeof(uint64_t));
-		} else {
+		} else
+#endif
+		{
 			props_ptr = (uint32_t __user * __capability)arg->props_ptr;
 			prop_values_ptr = (uint64_t __user * __capability)arg->prop_values_ptr;
 		}
-#endif
 
 		for (j = 0; j < count_props; j++) {
 			uint32_t prop_id;
