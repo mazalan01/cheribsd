@@ -40,6 +40,7 @@ SUBDIR=	alias \
 	cut \
 	diff \
 	dirname \
+	dispatch \
 	du \
 	elfctl \
 	elfdump \
