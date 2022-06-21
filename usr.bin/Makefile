@@ -11,6 +11,7 @@ SUBDIR=	alias \
 	banner \
 	basename \
 	beep \
+	binds \
 	brandelf \
 	bsdcat \
 	bsdiff \
