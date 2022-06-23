@@ -28,6 +28,8 @@
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
+#ifdef ZFS_LEGACY_SUPPORT
+
 #include <sys/types.h>
 #include <sys/param.h>
 #include <sys/conf.h>
@@ -361,3 +363,4 @@ zfs_cmd_ozfs_to_legacy(zfs_cmd_t *src, zfs_cmd_legacy_t *dst)
 	    sizeof (zfs_cmd_t) - 8 - offsetof(zfs_cmd_t, zc_sendobj));
 	dst->zc_jailid = src->zc_zoneid;
 }
+#endif /* ZFS_LEGACY_SUPPORT */
