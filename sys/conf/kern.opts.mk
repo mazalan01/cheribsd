@@ -35,6 +35,7 @@ __DEFAULT_YES_OPTIONS = \
     CDDL \
     CRYPT \
     CUSE \
+    DTRACE \
     EFI \
     FORMAT_EXTENSIONS \
     INET \
@@ -186,6 +187,7 @@ MK_${var}_SUPPORT:= yes
 .if ${MK_CDDL} == "no"
 # ctfconvert may not exist if MK_CDDL=false
 MK_CTF:=	no
+MK_DTRACE:=	no
 .endif
 
 # FIXME: duplicated from bsd.own.mk since the value of MK_CTF may have changed

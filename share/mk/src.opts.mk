@@ -92,6 +92,7 @@ __DEFAULT_YES_OPTIONS = \
     DIALOG \
     DICT \
     DMAGENT \
+    DTRACE \
     DYNAMICROOT \
     EE \
     EFI \
@@ -332,8 +333,7 @@ BROKEN_OPTIONS+=OFED
 
 .if ${__C} == "cheri" || ${__C} == "morello" || \
     ${__T:Maarch64*c*} || ${__T:Mriscv*c*}
-# Broken post OpenZFS import
-BROKEN_OPTIONS+=CDDL ZFS
+BROKEN_OPTIONS+=DTRACE
 .endif
 
 # EFI doesn't exist on powerpc (well, officially)
@@ -442,9 +442,10 @@ MK_SOURCELESS_UCODE:= no
 .endif
 
 .if ${MK_CDDL} == "no"
-MK_ZFS:=	no
-MK_LOADER_ZFS:=	no
 MK_CTF:=	no
+MK_DTRACE:=	no
+MK_LOADER_ZFS:=	no
+MK_ZFS:=	no
 .endif
 
 .if ${MK_CRYPT} == "no"
@@ -466,6 +467,10 @@ MK_PMC:=	no
 
 .if ${MK_DIALOG} == "no"
 MK_BSDINSTALL:=	no
+.endif
+
+.if ${MK_DTRACE} == "no"
+MK_CTF:=	no
 .endif
 
 .if ${MK_MAIL} == "no"
