@@ -132,7 +132,8 @@ extern char pmc_cpuid[PMC_CPUID_LEN];
 	__PMC_CPU(ARMV8_CORTEX_A53,	0x600,	"ARMv8 Cortex A53")	\
 	__PMC_CPU(ARMV8_CORTEX_A57,	0x601,	"ARMv8 Cortex A57")	\
 	__PMC_CPU(ARMV8_CORTEX_A76,	0x602,	"ARMv8 Cortex A76")	\
-	__PMC_CPU(ARMV8_RAINIER,	0x6ff,	"ARMv8 Rainier")
+	__PMC_CPU(ARMV8_RAINIER,	0x6ff,	"ARMv8 Rainier")	\
+	__PMC_CPU(RISCV_CHERI_TOOOBA,	0x700,	"CHERI-TOOOBA experimental support")
 
 enum pmc_cputype {
 #undef	__PMC_CPU
@@ -141,7 +142,7 @@ enum pmc_cputype {
 };
 
 #define	PMC_CPU_FIRST	PMC_CPU_AMD_K7
-#define	PMC_CPU_LAST	PMC_CPU_ARMV8_CORTEX_A76
+#define	PMC_CPU_LAST	PMC_CPU_RISCV_CHERI_TOOOBA
 
 /*
  * Classes of PMCs
@@ -169,7 +170,8 @@ enum pmc_cputype {
 	__PMC_CLASS(MIPS74K,	0x12,	"MIPS 74K")			\
 	__PMC_CLASS(E500,	0x13,	"Freescale e500 class")		\
 	__PMC_CLASS(BERI,	0x14,	"MIPS BERI")			\
-	__PMC_CLASS(POWER8,	0x15,	"IBM POWER8 class")
+	__PMC_CLASS(POWER8,	0x15,	"IBM POWER8 class")		\
+	__PMC_CLASS(RISCV,	0x16,	"RISCV class")
 
 enum pmc_class {
 #undef  __PMC_CLASS
@@ -178,7 +180,7 @@ enum pmc_class {
 };
 
 #define	PMC_CLASS_FIRST	PMC_CLASS_TSC
-#define	PMC_CLASS_LAST	PMC_CLASS_POWER8
+#define	PMC_CLASS_LAST	PMC_CLASS_RISCV64
 
 /*
  * A PMC can be in the following states:
