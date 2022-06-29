@@ -74,6 +74,11 @@ static int powerpc_allocate_pmc(enum pmc_event _pe, char* ctrspec,
 			     struct pmc_op_pmcallocate *_pmc_config);
 #endif /* __powerpc__ */
 
+#if defined(__riscv)
+static int riscv_allocate_pmc(enum pmc_event _pe, char* ctrspec,
+			      struct pmc_op_pmcallocate *_pmc_config);
+#endif /* __riscv */
+
 #define PMC_CALL(cmd, params)				\
 	syscall(pmc_syscall, PMC_OP_##cmd, (params))
 
@@ -137,6 +142,7 @@ PMC_CLASSDEP_TABLE(armv8, ARMV8);
 PMC_CLASSDEP_TABLE(ppc7450, PPC7450);
 PMC_CLASSDEP_TABLE(ppc970, PPC970);
 PMC_CLASSDEP_TABLE(e500, E500);
+PMC_CLASSDEP_TABLE(riscv, RISCV);
 
 static struct pmc_event_descr soft_event_table[PMC_EV_DYN_COUNT];
 
@@ -184,6 +190,10 @@ static const struct pmc_event_descr rainier_event_table[] =
 	__PMC_EV_ARMV8()
 };
 
+static const struct pmc_event_descr toooba_event_table[] = {
+	__PMC_EV_ALIAS_TOOOBA()
+};
+
 static const struct pmc_event_descr tsc_event_table[] =
 {
 	__PMC_EV_ALIAS_TSC()
@@ -223,6 +233,9 @@ PMC_CLASS_TABLE_DESC(ppc7450, PPC7450, ppc7450, powerpc);
 PMC_CLASS_TABLE_DESC(ppc970, PPC970, ppc970, powerpc);
 PMC_CLASS_TABLE_DESC(e500, E500, e500, powerpc);
 #endif
+#if defined(__riscv)
+PMC_CLASS_TABLE_DESC(toooba, RISCV, toooba, riscv);
+#endif /* __riscv */
 
 static struct pmc_class_descr soft_class_table_descr =
 {
@@ -844,6 +857,30 @@ powerpc_allocate_pmc(enum pmc_event pe, char *ctrspec __unused,
 
 #endif /* __powerpc__ */
 
+#if defined(__riscv)
+static struct pmc_event_alias toooba_aliases[] = {
+	EV_ALIAS("instructions",	"INSTRET"),
+	EV_ALIAS("cycles",		"CYCLES"),
+	EV_ALIAS(NULL, NULL)
+};
+
+#define	RISCV_KW_OS		"os"
+#define	RISCV_KW_USR		"usr"
+#define	RISCV_KW_ANYTHREAD	"anythread"
+
+static int
+riscv_allocate_pmc(enum pmc_event pe, char* ctrspec __unused,
+		   struct pmc_op_pmcallocate *pmc_config __unused)
+{
+	switch (pe) {
+	default:
+		break;
+	}
+
+	return (0);
+}
+
+#endif /* __riscv */
 
 /*
  * Match an event name `name' with its canonical form.
@@ -1186,6 +1223,17 @@ pmc_event_names_of_class(enum pmc_class cl, const char ***eventnames,
 		ev = soft_event_table;
 		count = soft_event_info.pm_nevent;
 		break;
+	case PMC_CLASS_RISCV:
+		switch (cpu_info.pm_cputype) {
+		case PMC_CPU_RISCV_CHERI_TOOOBA:
+			ev = toooba_event_table;
+			count = PMC_EVENT_TABLE_SIZE(toooba);
+			break;
+		default:
+			errno = EINVAL;
+			return (-1);
+		}
+		break;
 	default:
 		errno = EINVAL;
 		return (-1);
@@ -1387,6 +1435,12 @@ pmc_init(void)
 		pmc_class_table[n] = &e500_class_table_descr;
 		break;
 #endif
+#if defined(__riscv)
+	case PMC_CPU_RISCV_CHERI_TOOOBA:
+		PMC_MDEP_INIT(toooba);
+		pmc_class_table[n] = &toooba_class_table_descr;
+		break;
+#endif /* __riscv */
 	default:
 		/*
 		 * Some kind of CPU this version of the library knows nothing
@@ -1515,6 +1569,15 @@ _pmc_name_of_event(enum pmc_event pe, enum pmc_cputype cpu)
 	} else if (pe == PMC_EV_TSC_TSC) {
 		ev = tsc_event_table;
 		evfence = tsc_event_table + PMC_EVENT_TABLE_SIZE(tsc);
+	}  else if ((int)pe >= PMC_EV_RISCV_FIRST && (int)pe <= PMC_EV_RISCV_LAST) {
+		switch (cpu) {
+			case PMC_CPU_RISCV_CHERI_TOOOBA:
+				ev = toooba_event_table;
+				evfence = toooba_event_table + PMC_EVENT_TABLE_SIZE(toooba);
+				break;
+			default:
+				break;
+		}
 	} else if ((int)pe >= PMC_EV_SOFT_FIRST && (int)pe <= PMC_EV_SOFT_LAST) {
 		ev = soft_event_table;
 		evfence = soft_event_table + soft_event_info.pm_nevent;
