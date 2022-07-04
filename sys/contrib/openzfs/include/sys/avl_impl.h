@@ -55,7 +55,7 @@ extern "C" {
  * bottom bits of the parent pointer on 64 bit machines to save on space.
  */
 
-#ifndef _LP64
+#if !defined(_LP64) && !defined(__CHERI_PURE_CAPABILITY__)
 
 struct avl_node {
 	struct avl_node *avl_child[2];	/* left/right children */
@@ -98,12 +98,12 @@ struct avl_node {
  */
 #define	AVL_XPARENT(n)		((struct avl_node *)((n)->avl_pcb & ~7))
 #define	AVL_SETPARENT(n, p)						\
-	((n)->avl_pcb = (((n)->avl_pcb & 7) | (uintptr_t)(p)))
+	((n)->avl_pcb = (((ptraddr_t)(n)->avl_pcb & 7) | (uintptr_t)(p)))
 
 /*
  * index of this node in its parent's avl_child[]: bit #2
  */
-#define	AVL_XCHILD(n)		(((n)->avl_pcb >> 2) & 1)
+#define	AVL_XCHILD(n)		(((ptraddr_t)(n)->avl_pcb >> 2) & 1)
 #define	AVL_SETCHILD(n, c)						\
 	((n)->avl_pcb = (uintptr_t)(((n)->avl_pcb & ~4) | ((c) << 2)))
 

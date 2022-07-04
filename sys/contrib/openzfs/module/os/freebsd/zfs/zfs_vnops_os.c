@@ -1742,7 +1742,7 @@ zfs_readdir(vnode_t *vp, zfs_uio_t *uio, cred_t *cr, int *eofp,
 	} else {
 		bufsize = bytes_wanted;
 		outbuf = NULL;
-		odp = (struct dirent64 *)iovp->iov_base;
+		odp = (__cheri_fromcap struct dirent64 *)iovp->iov_base;
 	}
 	eodp = (struct edirent *)odp;
 
@@ -5040,7 +5040,7 @@ zfs_freebsd_readlink(struct vop_readlink_args *ap)
 	trycache = false;
 	if (zfs_uio_segflg(&uio) == UIO_SYSSPACE &&
 	    zfs_uio_iovcnt(&uio) == 1) {
-		base = zfs_uio_iovbase(&uio, 0);
+		base = (__cheri_fromcap char *)zfs_uio_iovbase(&uio, 0);
 		symlink_len = zfs_uio_iovlen(&uio, 0);
 		trycache = true;
 	}
@@ -5352,7 +5352,8 @@ zfs_getextattr_dir(struct vop_getextattr_args *ap, const char *attrname)
 	NDINIT_ATVP(&nd, LOOKUP, NOFOLLOW, UIO_SYSSPACE, attrname,
 	    xvp, td);
 #else
-	NDINIT_ATVP(&nd, LOOKUP, NOFOLLOW, UIO_SYSSPACE, attrname, xvp);
+	NDINIT_ATVP(&nd, LOOKUP, NOFOLLOW, UIO_SYSSPACE, PTR2CAP(attrname),
+	    xvp);
 #endif
 	error = vn_open_cred(&nd, &flags, 0, VN_OPEN_INVFS, ap->a_cred, NULL);
 	vp = nd.ni_vp;
@@ -5497,7 +5498,7 @@ zfs_deleteextattr_dir(struct vop_deleteextattr_args *ap, const char *attrname)
 	    UIO_SYSSPACE, attrname, xvp, ap->a_td);
 #else
 	NDINIT_ATVP(&nd, DELETE, NOFOLLOW | LOCKPARENT | LOCKLEAF,
-	    UIO_SYSSPACE, attrname, xvp);
+	    UIO_SYSSPACE, PTR2CAP(attrname), xvp);
 #endif
 	error = namei(&nd);
 	vp = nd.ni_vp;
@@ -5641,7 +5642,7 @@ zfs_setextattr_dir(struct vop_setextattr_args *ap, const char *attrname)
 #if __FreeBSD_version < 1400043
 	NDINIT_ATVP(&nd, LOOKUP, NOFOLLOW, UIO_SYSSPACE, attrname, xvp, td);
 #else
-	NDINIT_ATVP(&nd, LOOKUP, NOFOLLOW, UIO_SYSSPACE, attrname, xvp);
+	NDINIT_ATVP(&nd, LOOKUP, NOFOLLOW, UIO_SYSSPACE, PTR2CAP(attrname), xvp);
 #endif
 	error = vn_open_cred(&nd, &flags, 0600, VN_OPEN_INVFS, ap->a_cred,
 	    NULL);
@@ -5847,8 +5848,7 @@ zfs_listextattr_dir(struct vop_listextattr_args *ap, const char *attrprefix)
 	size_t plen = strlen(attrprefix);
 
 	do {
-		aiov.iov_base = (void *)dirbuf;
-		aiov.iov_len = sizeof (dirbuf);
+		IOVEC_INIT(&aiov, dirbuf, sizeof (dirbuf));
 		auio.uio_resid = sizeof (dirbuf);
 		error = VOP_READDIR(vp, &auio, ap->a_cred, &eof, NULL, NULL);
 		if (error != 0)
