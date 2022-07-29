@@ -37,6 +37,8 @@ __FBSDID("$FreeBSD$");
 
 #include <sys/param.h>
 #include <sys/fcntl.h>
+#include <sys/kernel.h>
+#include <sys/malloc.h>
 #include <sys/mbuf.h>
 #include <sys/proc.h>
 #include <sys/socketvar.h>
@@ -256,6 +258,18 @@ exit:
 	return (error);
 }
 
+MALLOC_DECLARE(M_CMSG);
+MALLOC_DEFINE(M_CMSG, "cmsg data", "Oversized control message data");
+static void
+cmsg_free_mext(struct mbuf *m)
+{
+	KASSERT(m->m_flags & M_EXT && m->m_ext.ext_type == EXT_CONTROL,
+	    ("%s: m %p !M_EXT or !EXT_SFBUF", __func__, m));
+
+	printf("%s: freeing %p\n", __func__, m->m_ext.ext_buf);
+	free(m->m_ext.ext_buf, M_CMSG);
+}
+
 static int
 freebsd64_copyin_control(struct mbuf **mp, char * __capability buf,
     u_int buflen)
@@ -287,14 +301,23 @@ freebsd64_copyin_control(struct mbuf **mp, char * __capability buf,
 		newlen += CMSG_SPACE(datalen);
 	}
 
-	if (newlen > MCLBYTES)
-		return (EINVAL);
-
-	m = m_get2(newlen, M_WAITOK, MT_CONTROL, 0);
-	m->m_len = newlen;
+	if (newlen <= MCLBYTES) {
+		m = m_get2(newlen, M_WAITOK, MT_CONTROL, 0);
+		m->m_len = newlen;
+		md = mtod(m, caddr_t);
+	} else {
+		m = m_get(M_WAITOK, MT_CONTROL);
+		m->m_ext.ext_buf = malloc(newlen, M_CMSG, M_WAITOK|M_ZERO);
+		m->m_ext.ext_size = newlen;
+		m->m_ext.ext_type = EXT_CONTROL;
+		m->m_ext.ext_free = cmsg_free_mext;
+		m->m_ext.ext_flags = EXT_FLAG_EMBREF;
+		m->m_ext.ext_count = 1;
+		m->m_flags |= M_EXT;
+		md = m->m_ext.ext_buf;
+	}
 
 	/* Copyin and realign the control data. */
-	md = mtod(m, caddr_t);
 	while (buflen > 0) {
 		error = copyin(buf, md, sizeof(struct cmsghdr));
 		if (error)

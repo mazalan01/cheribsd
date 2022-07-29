@@ -613,6 +613,7 @@ m_epg_pagelen(const struct mbuf *m, int pidx, int pgoff)
 #define	EXT_PACKET	6	/* mbuf+cluster from packet zone */
 #define	EXT_MBUF	7	/* external mbuf reference */
 #define	EXT_RXRING	8	/* data in NIC receive ring */
+#define	EXT_CONTROL	9	/* oversized cmsg data */
 
 #define	EXT_VENDOR1	224	/* for vendor-internal use */
 #define	EXT_VENDOR2	225	/* for vendor-internal use */
