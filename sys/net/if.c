@@ -111,6 +111,8 @@
 #include <cheri/cheric.h>
 #include <security/mac/mac_framework.h>
 
+#include <string.h>
+
 /*
  * Consumers of struct ifreq such as tcpdump assume no pad between ifr_name
  * and ifr_ifru when it is used in SIOCGIFCONF.
@@ -3427,6 +3429,13 @@ ifioctl(struct socket *so, u_long cmd, caddr_t data, struct thread *td)
 	}
 
 	ifr = (struct ifreq *)data;
+
+	size_t ifr_name_len = strnlen(ifr->ifr_name, sizeof(ifr->ifr_name));
+	if (ifr_name_len < 1 || ifr_name_len >= sizeof(ifr->ifr_name)){
+		error = EINVAL;
+		goto out_noref;
+	}
+
 	switch (cmd) {
 #ifdef VIMAGE
 	case SIOCSIFRVNET:
